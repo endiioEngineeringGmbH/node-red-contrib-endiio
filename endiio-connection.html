@@ -1,0 +1,73 @@
+<script type="text/javascript">
+RED.nodes.registerType("endiio-connection", {
+    paletteLabel: "connection",
+    category: 'endiio',
+    color: '#A6BBCF',
+    defaults: {
+        name: { value: "" },
+        port: { value: "/dev/ttyS1" },
+        baudrate: { value: "9600" },
+        bits: { value: "8" },
+        paritybit: { value: "none" },
+        stopbit: { value: "1" }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "endiio.png",
+    label: function() {
+        return this.name || "connection";
+    }
+});
+</script>
+<script type="text/x-red" data-template-name="endiio-connection">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-port"><i class="icon-tag"></i>Port</label>
+        <input type="text" id="node-input-port" placeholder="Port">
+    </div>
+    <div class="form-row">
+        <label for="node-input-baudrate"><i class="icon-tag"></i>Baudrate</label>
+        <select id="node-input-baudrate">
+          <option value="9600">9600 (9k6)</option>
+          <option value="14400">14400 (14k4)</option>
+          <option value="19200">19200 (19k2)</option>
+          <option value="28800">28800 (28k8)</option>
+          <option value="38400">38400 (38k4)</option>
+          <option value="56000">57600 (57k6)</option>
+          <option value="115200">115200 (115k2)</option>
+          <option value="128000">128000 (128k)</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-bits"><i class="icon-tag"></i>Bits</label>
+        <select id="node-input-bits">
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-paritybit"><i class="icon-tag"></i>Parity</label>
+        <select id="node-input-paritybit">
+          <option value="none">None</option>
+          <option value="even">Even</option>
+          <option value="odd">Odd</option>
+          <option value="mark">Mark</option>
+          <option value="space">Space</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-stopbit"><i class="icon-tag"></i>Stop</label>
+        <select id="node-input-stopbit">
+          <option value="1">1</option>
+          <option value="2">2</option>
+        </select>
+    </div>
+</script>
+<script type="text/x-red" data-help-name="endiio-connection">
+    <p>This node provides an source for endiio data packets which are received. Data on the input is passed onto the serial connection.</p>
+</script>

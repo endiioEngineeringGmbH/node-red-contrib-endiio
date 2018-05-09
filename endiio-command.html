@@ -1,0 +1,72 @@
+<script type="text/javascript">
+RED.nodes.registerType("endiio-command", {
+    paletteLabel: "command",
+    category: 'endiio',
+    color: '#A6BBCF',
+    defaults: {
+        name: { value: "" },
+        command: { value: "version" },
+        raw: { value: "EN-..." },
+        pairing: { value: true }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "endiio.png",
+    label: function() {
+        return this.name || "command";
+    },
+    oneditprepare: function() {
+      var commandSelector = document.getElementById("node-input-command");
+      var selectFunction = function() {
+        var settingsContainer = commandSelector.parentElement.parentElement;
+        var selectedIndex = commandSelector.selectedIndex;
+        var selected = (selectedIndex == -1) ? null
+            : commandSelector.options[selectedIndex].value;
+
+        var list = settingsContainer.getElementsByClassName("endiio-selectable");
+        for (var i = 0; i < list.length; i++) {
+          list[i].classList.remove("hidden");
+
+          if (selected != null && !list[i].classList.contains("endiio-selectable-" + selected)) {
+            list[i].classList.add("hidden");
+          }
+        }
+      };
+
+      selectFunction();
+
+      commandSelector.addEventListener("click", selectFunction);
+      commandSelector.addEventListener("change", selectFunction);
+    }
+});
+</script>
+<script type="text/x-red" data-template-name="endiio-command">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+      <label for="node-input-command"><i class="icon-tag"></i>Command</label>
+      <select id="node-input-command">
+        <option value="version">Version</option>
+        <option value="reset">Reset</option>
+        <option value="raw">Raw</option>
+        <option value="pairing">Pairing</option>
+      </select>
+    </div>
+    <div class="form-row endiio-selectable endiio-selectable-raw">
+        <label for="node-input-raw"><i class="icon-tag"></i>EN-Command</label>
+        <input type="text" id="node-input-raw" placeholder="EN-COMMAND">
+    </div>
+    <div class="form-row endiio-selectable endiio-selectable-pairing">
+        <label for="node-input-pairing"><i class="icon-tag"></i>Enable pairing</label>
+        <select>
+          <option value="true">Yes</option>
+          <option value="false">No</option>
+          <option value="input">Depending on payload</option>
+        </select>
+    </div>
+</script>
+<script type="text/x-red" data-help-name="endiio-command">
+    <p>This node enables sending endiio commands with the help of an endiio connection node.</p>
+</script>
