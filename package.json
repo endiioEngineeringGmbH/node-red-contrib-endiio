@@ -1,10 +1,13 @@
 {
   "name": "node-red-contrib-endiio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "endiio protocol extension",
   "author": "endiio engineering GmbH",
   "license": "MIT",
-  "keywords": [ "node-red", "endiio" ],
+  "keywords": [
+    "node-red",
+    "endiio"
+  ],
   "node-red": {
     "nodes": {
       "endiio-connection": "endiio-connection.js",
