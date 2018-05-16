@@ -2,7 +2,7 @@
   "name": "node-red-contrib-endiio",
   "version": "1.0.0",
   "description": "endiio protocol extension",
-  "author": "endiio engineering",
+  "author": "endiio engineering GmbH",
   "license": "MIT",
   "keywords": [ "node-red", "endiio" ],
   "node-red": {
@@ -13,5 +13,9 @@
   },
   "dependencies": {
     "serialport": "^6.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/endiioEngineeringGmbH/node-red-contrib-endiio"
   }
 }
