@@ -4,8 +4,6 @@ module.exports = function (RED) {
   const SerialPort = require('serialport');
   const Readline = SerialPort.parsers.Readline;
 
-  const debug = false;
-
   var sensors = {};
   sensors[0x60] = { name: "BME280", values: ["temperature", "humidity", "pressure"], units: ["°C", "rF", "hPa"] };
   sensors[0x61] = { name: "BME280Light", values: ["temperature", "humidity"], units: ["°C", "rF"] };
@@ -25,12 +23,17 @@ module.exports = function (RED) {
 
     node.serialport = null;
     node.drainInterval = null;
-    node.connectInterval = null;
+    node.reconnectTimeout = null;
     node.drain = false;
 
     node.on('close', function() {
       node.disconnect();
     });
+
+    /*
+     * Incoming data is redirected to the serial port.
+     * This is used internally to generate and send packets.
+     */
     node.on('input', function(message) {
       if (message.payload == null || message.payload == "") {
         return;
@@ -42,7 +45,7 @@ module.exports = function (RED) {
         port.write(msg + "\r\n");
         port.drain(function(error) {
           if (error != null) {
-            debug && console.log("input drain error");
+            node.debug("Could not drain serial port!");
             node.onError();
           }
         });
@@ -50,21 +53,18 @@ module.exports = function (RED) {
     });
 
     node.onDisconnected = function onDisconnected() {
+      node.clearTimeouts();
       node.status({fill: "red", shape: "dot", text: "not connected"});
     };
     node.onConnected = function onConnected(error) {
       if (error != null) {
-        debug && console.log("connection error");
-        node.onError();
+        node.error("Could not connect to serial port!");
+        node.disconnect();
+        node.reconnectTimeout = setTimeout(node.connect, 3000);
         return;
       }
 
-      var connectInterval = node.connectInterval;
-      if (connectInterval != null) {
-        node.connectInterval = null;
-        clearInterval(connectInterval);
-      }
-
+      node.clearTimeouts();
       node.status({fill: "green", shape: "dot", text: "connected"});
 
       var parser = new Readline();
@@ -72,35 +72,74 @@ module.exports = function (RED) {
       parser.on('error', node.onError);
       node.serialport.pipe(parser);
 
-      debug && console.log("Connected");
+      node.log("Connected to serial port!");
 
       // Timeout detection for Windows implementation
       node.drain = false;
-      node.drainInterval = setInterval(function () {
-        var port = node.serialport;
-        if (port != null) {
-          debug && console.log("Drain");
-
-          if (node.drain) {
-              // Timeout
-              debug && console.log("Timeout");
-              node.onError();
-          }
-
-          node.drain = true;
-          port.drain(function(error) {
-            if (!error) {
-              node.drain = false;
-            }
-          });
-        }
-      }, 3000);
+      node.drainInterval = setInterval(node.onDrainInterval, 3000);
     };
     node.onError = function onError() {
-      debug && console.log("Error!");
+      node.error("Connection to serial port lost!");
       node.onDisconnected();
       node.disconnect();
-      node.connectInterval = setTimeout(node.connect, 3000);
+      node.reconnectTimeout = setTimeout(node.connect, 3000);
+    };
+    node.onDrainInterval = function onDrainInterval() {
+      var port = node.serialport;
+      if (port != null) {
+        if (node.drain) { // Timeout
+            node.debug("Drain interval is overlapping!");
+            node.debug("The serial port might be unresponsive!");
+            node.onError();
+            return;
+        }
+
+        node.debug("Draining serial port!");
+
+        node.drain = true;
+        port.drain(function(error) {
+          if (error == null) {
+            node.drain = false;
+          }
+        });
+      }
+    };
+    node.clearTimeouts = function clearTimeouts() {
+      var drainInterval = node.drainInterval;
+      if (drainInterval != null) {
+        node.drainInterval = null;
+        clearInterval(drainInterval);
+      }
+      var reconnectTimeout = node.reconnectTimeout;
+      if (reconnectTimeout != null) {
+        node.reconnectTimeout = null;
+        clearTimeout(reconnectTimeout);
+      }
+
+      node.drain = false;
+    };
+
+    node.connect = function connect() {
+      node.clearTimeouts();
+
+      var port = config.port;
+      var configuration = node.getSerialProperties();
+      if (port == null || port === "") {
+        node.status({fill: "red", shape: "ring", text: "no port"});
+        return;
+      }
+
+      node.debug("Connecting to serial port!");
+      node.serialport = new SerialPort(port, configuration, node.onConnected);
+    };
+    node.disconnect = function disconnect() {
+      node.clearTimeouts();
+
+      var port = node.serialport;
+      if (port != null) {
+        node.serialport = null;
+        port.close(function() {}, null);
+      }
     };
 
     node.getSerialProperties = function getSerialProperties() {
@@ -110,38 +149,6 @@ module.exports = function (RED) {
         parity: config.paritybit || 'none',
         stopbit: +config.stopbit || 1
       };
-    };
-
-    node.connect = function connect() {
-      if (config.port == null || config.port === "") {
-        node.status({fill: "red", shape: "ring", text: "no port"});
-        return;
-      }
-
-      debug && console.log("Connecting");
-
-      node.serialport = new SerialPort(config.port, node.getSerialProperties(), node.onConnected);
-    };
-    node.disconnect = function disconnect() {
-      var port = node.serialport;
-      var drainInterval = node.drainInterval;
-      var connectInterval = node.connectInterval;
-
-      if (port != null) {
-        node.serialport = null;
-        port.close(function() {}, null);
-      }
-
-      if (drainInterval != null) {
-        node.drainInterval = null;
-        clearInterval(drainInterval);
-      }
-      if (connectInterval != null) {
-        node.connectInterval = null;
-        clearInterval(connectInterval);
-      }
-
-      node.drain = false;
     };
 
     // Helper functions
@@ -182,13 +189,13 @@ module.exports = function (RED) {
         return;
       }
 
-      debug && console.log("Message: \"" + message + "\"");
+      node.debug("Message: \"" + message + "\"");
 
       if (message == "-WCMDRDY=1") {
         port.write("EN-GWCMD\r\n");
         port.drain(function(error) {
           if (error) {
-            debug && console.log("Write-Error");
+            node.debug("Could not respond on serial port!");
             node.onError();
           }
         });
@@ -201,14 +208,15 @@ module.exports = function (RED) {
           topic: node.name,
           payload: {
             type: "paired",
-            source: sensorUnitId
+            source: sensorUnitId,
+            "source-hex": sensorUnitId.toString(16).padStart(8, '0')
           }
         });
         return;
       }
 
       if (!message.startsWith("EN-GWCMD=")) {
-        debug && console.log("Unknown message");
+        node.debug("Unknown message");
         node.send({
           topic: node.name,
           payload: {
@@ -225,7 +233,7 @@ module.exports = function (RED) {
       // The command always consists of 4 parts separated by ','
       var splitData = payload.split(",", 5);
       if (splitData.length != 4) {
-        debug && console.log("Unknown payload");
+        node.debug("Could not decode payload!");
         return;
       }
 
@@ -239,7 +247,7 @@ module.exports = function (RED) {
 
       // Empty packet
       if (data.length == 0) {
-        debug && console.log("Empty command");
+        node.debug("Empty command");
         return;
       }
 
@@ -249,7 +257,7 @@ module.exports = function (RED) {
           node.decodeSensorData(data.slice(1), timestamp, rxAddr);
           break;
         default:
-          debug && console.log("Invalid command: " + data[0]);
+          node.debug("Invalid command: " + data[0]);
           return;
       }
 
@@ -257,7 +265,7 @@ module.exports = function (RED) {
         port.write("EN-GWCMD\r\n");
         port.drain(function(error) {
           if (error) {
-            debug && console.log("Write-Error");
+            node.debug("Could not respond on serial port!");
             node.onError();
           }
         });
@@ -268,13 +276,14 @@ module.exports = function (RED) {
         var sensorId = data[i];
         var sensorDefinition = sensors[sensorId];
         if (sensorDefinition == undefined) {
-          debug && console.log("Unknown sensor " + sensorId);
+          node.debug("Unknown sensor " + sensorId);
           continue;
         }
 
         var sensorData = {
           type: "sensor-data",
           source: source,
+          "source-hex": source.toString(16).padStart(8, '0'),
           id: sensorId,
           name: sensorDefinition.name,
           timestamp: timestamp,
