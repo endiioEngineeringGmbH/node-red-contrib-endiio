@@ -11,7 +11,8 @@
   "node-red": {
     "nodes": {
       "endiio-connection": "endiio-connection.js",
-      "endiio-command": "endiio-command.js"
+      "endiio-command": "endiio-command.js",
+      "endiio-filter": "endiio-filter.js"
     }
   },
   "dependencies": {

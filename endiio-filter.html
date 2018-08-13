@@ -1,0 +1,130 @@
+<script type="text/javascript">
+RED.nodes.registerType("endiio-filter", {
+    paletteLabel: "filter",
+    category: 'endiio',
+    color: '#A6BBCF',
+    defaults: {
+        name: { value: "" },
+        filter: { value: "sensor-unit" },
+        "sensor-unit": { value: "00000000" },
+        "sensor-type": { value: "BME280" },
+        "sensor-value": { value: "All" }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "endiio.png",
+    label: function() {
+        return this.name || "filter";
+    },
+    oneditprepare: function() {
+      var filterSelector = document.getElementById("node-input-filter");
+      var filterSelectFunction = function() {
+        var settingsContainer = filterSelector.parentElement.parentElement;
+        var selectedIndex = filterSelector.selectedIndex;
+        var selected = (selectedIndex == -1) ? null
+            : filterSelector.options[selectedIndex].value;
+
+        var list = settingsContainer.getElementsByClassName("endiio-selectable");
+        for (var i = 0; i < list.length; i++) {
+          list[i].classList.remove("hidden");
+
+          if (selected != null && !list[i].classList.contains("endiio-selectable-" + selected)) {
+            list[i].classList.add("hidden");
+          }
+        }
+      };
+
+      filterSelectFunction();
+      filterSelector.addEventListener("click", filterSelectFunction);
+      filterSelector.addEventListener("change", filterSelectFunction);
+
+      var sensorTypeSelector = document.getElementById("node-input-sensor-type");
+      var sensorValueSelector = document.getElementById("node-input-sensor-value");
+      var sensorSelectFunction = function() {
+        var sensorValues = {
+          "BME280": ["temperature", "humidity", "pressure"],
+          "BME280Light": ["temperature", "humidity"],
+          "THMOD800": ["temperature"],
+          "HYT131": ["temperature", "humidity"],
+          "MAX44009": ["luminance"],
+          "MPU9250": ["acceleration_x", "acceleration_z", "gyro_z"],
+          "Shock": ["detected"],
+          "Battery": ["voltage"],
+          "Rssi": ["rssi"],
+          "System": ["voltage", "rssi"]
+        };
+
+        var options = sensorValueSelector.options;
+        var selectedIndex = sensorTypeSelector.selectedIndex;
+        var selected = sensorTypeSelector.options[
+            (selectedIndex == -1) ? 0 : selectedIndex
+          ].value;
+
+        var values = sensorValues[selected];
+        for (var i = 1; i < options.length; i++) {
+          options[i].style.display = (values.indexOf(options[i]["value"]) == -1)
+              ? "none" : "initial";
+        }
+
+        if (sensorValueSelector.selectedIndex == -1) {
+          sensorValueSelector.selectedIndex = 0;
+        }
+      };
+
+      sensorSelectFunction();
+      sensorTypeSelector.addEventListener("click", sensorSelectFunction);
+      sensorTypeSelector.addEventListener("change", sensorSelectFunction);
+    }
+});
+</script>
+<script type="text/x-red" data-template-name="endiio-filter">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+      <label for="node-input-filter"><i class="icon-tag"></i>Filter</label>
+      <select id="node-input-filter">
+        <option value="sensor-unit">Sensor Unit</option>
+        <option value="sensor-type">Sensor Type</option>
+      </select>
+    </div>
+    <div class="form-row endiio-selectable endiio-selectable-sensor-unit">
+        <label for="node-input-sensor-unit"><i class="icon-tag"></i>Sensor Unit</label>
+        <input type="text" id="node-input-sensor-unit" placeholder="Unit ID">
+    </div>
+    <div class="form-row endiio-selectable endiio-selectable-sensor-type">
+        <label for="node-input-sensor-type"><i class="icon-tag"></i>Sensor Type</label>
+        <select id="node-input-sensor-type">
+          <option value="BME280">BME280</option>
+          <option value="BME280Light">BME280 Light</option>
+          <option value="THMOD800">THMOD800</option>
+          <option value="HYT131">HYT131</option>
+          <option value="MAX44009">MAX44009</option>
+          <option value="MPU9250">MPU9250</option>
+          <option value="Shock">Shock</option>
+          <option value="Battery">Battery</option>
+          <option value="RSSI">RSSI</option>
+          <option value="System">System</option>
+        </select>
+    </div>
+    <div class="form-row endiio-selectable endiio-selectable-sensor-type">
+        <label for="node-input-sensor-value"><i class="icon-tag"></i>Sensor Value</label>
+        <select id="node-input-sensor-value">
+          <option value="all">All</option>
+          <option value="temperature">Temperature</option>
+          <option value="humidity">Humidity</option>
+          <option value="pressure">Pressure</option>
+          <option value="luminance">Luminance</option>
+          <option value="acceleration_x">Acceleration on X-Axis</option>
+          <option value="acceleration_z">Acceleration on Z-Axis</option>
+          <option value="gyro_z">Rotation around Z-Axis</option>
+          <option value="detected">Shock Detection</option>
+          <option value="voltage">Voltage</option>
+          <option value="rssi">RSSI</option>
+        </select>
+    </div>
+</script>
+<script type="text/x-red" data-help-name="endiio-command">
+    <p>This node enables filtering endiio responses with the selected filter type.</p>
+</script>
