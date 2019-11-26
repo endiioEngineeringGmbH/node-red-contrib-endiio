@@ -26,10 +26,10 @@ RED.nodes.registerType("endiio-filter", {
 
         var list = settingsContainer.getElementsByClassName("endiio-selectable");
         for (var i = 0; i < list.length; i++) {
-          list[i].classList.remove("hidden");
+          list[i].classList.remove("endiio-hidden");
 
           if (selected != null && !list[i].classList.contains("endiio-selectable-" + selected)) {
-            list[i].classList.add("hidden");
+            list[i].classList.add("endiio-hidden");
           }
         }
       };
@@ -93,7 +93,7 @@ RED.nodes.registerType("endiio-filter", {
         <label for="node-input-sensor-unit"><i class="icon-tag"></i>Sensor Unit</label>
         <input type="text" id="node-input-sensor-unit" placeholder="Unit ID">
     </div>
-    <div class="form-row endiio-selectable endiio-selectable-sensor-type">
+    <div class="form-row endiio-selectable endiio-selectable-sensor-type endiio-hidden">
         <label for="node-input-sensor-type"><i class="icon-tag"></i>Sensor Type</label>
         <select id="node-input-sensor-type">
           <option value="BME280">BME280</option>
@@ -108,7 +108,7 @@ RED.nodes.registerType("endiio-filter", {
           <option value="System">System</option>
         </select>
     </div>
-    <div class="form-row endiio-selectable endiio-selectable-sensor-type">
+    <div class="form-row endiio-selectable endiio-selectable-sensor-type endiio-hidden">
         <label for="node-input-sensor-value"><i class="icon-tag"></i>Sensor Value</label>
         <select id="node-input-sensor-value">
           <option value="all">All</option>
@@ -128,3 +128,8 @@ RED.nodes.registerType("endiio-filter", {
 <script type="text/x-red" data-help-name="endiio-command">
     <p>This node enables filtering endiio responses with the selected filter type.</p>
 </script>
+<style>
+.endiio-hidden {
+  display: none;
+}
+</style>
