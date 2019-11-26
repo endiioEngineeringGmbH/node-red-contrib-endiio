@@ -5,7 +5,7 @@ module.exports = function (RED) {
   const Readline = SerialPort.parsers.Readline;
 
   var sensors = {};
-  sensors[0x60] = { name: "BME280", values: ["temperature", "humidity", "pressure"], units: ["°C", "rF", "hPa"] };
+  sensors[0x60] = { name: "BME280", values: ["temperature", "humidity", "pressure"], units: ["°C", "rF", "Pa"] };
   sensors[0x61] = { name: "BME280Light", values: ["temperature", "humidity"], units: ["°C", "rF"] };
   sensors[0x78] = { name: "THMOD800", values: ["temperature"], units: ["°C"] };
   sensors[0x28] = { name: "HYT131", values: ["temperature", "humidity"],  units: ["°C", "rF"] };
