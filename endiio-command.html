@@ -25,10 +25,10 @@ RED.nodes.registerType("endiio-command", {
 
         var list = settingsContainer.getElementsByClassName("endiio-selectable");
         for (var i = 0; i < list.length; i++) {
-          list[i].classList.remove("hidden");
+          list[i].classList.remove("endiio-hidden");
 
           if (selected != null && !list[i].classList.contains("endiio-selectable-" + selected)) {
-            list[i].classList.add("hidden");
+            list[i].classList.add("endiio-hidden");
           }
         }
       };
@@ -54,11 +54,11 @@ RED.nodes.registerType("endiio-command", {
         <option value="pairing">Pairing</option>
       </select>
     </div>
-    <div class="form-row endiio-selectable endiio-selectable-raw">
+    <div class="form-row endiio-selectable endiio-selectable-raw endiio-hidden">
         <label for="node-input-raw"><i class="icon-tag"></i>EN-Command</label>
         <input type="text" id="node-input-raw" placeholder="EN-COMMAND">
     </div>
-    <div class="form-row endiio-selectable endiio-selectable-pairing">
+    <div class="form-row endiio-selectable endiio-selectable-pairing endiio-hidden">
         <label for="node-input-pairing"><i class="icon-tag"></i>Enable pairing</label>
         <select>
           <option value="true">Yes</option>
@@ -70,3 +70,8 @@ RED.nodes.registerType("endiio-command", {
 <script type="text/x-red" data-help-name="endiio-command">
     <p>This node enables sending endiio commands with the help of an endiio connection node.</p>
 </script>
+<style>
+.endiio-hidden {
+  display: none;
+}
+</style>

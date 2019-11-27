@@ -3,11 +3,16 @@ node-red-contrib-endiio
 
 This extension provides nodes to interact with endiio protocol devices using UART.
 
-Install
--------
+The **endiio-connection** node can receive data packets from an endiio dongle or gateway over USB / UART and deserialize the received sensor data to enable further processing.
+This node also accepts incoming messages which are then forwarded to the endiio dongle / gateway as a command packet.
+The **endiio-command** node can be used to create commands to send via the **endiio-connection** node.
+Additionally sensor data messages can be filtered and unpacked via the **endiio-filter** node to extract the relevant data.
+
+Installation
+------------
 
 Install node red by following the setup instructions at [Installing Node.js via package manager](https://nodejs.org/en/download/package-manager/).
-Run the following command in the Node-RED user directory `~/.node-red` to install the node-red-contrib-endiio package:
+Run the following command in the Node-RED user directory (`~/.node-red`) to install the node-red-contrib-endiio package:
 
 ```bash
 npm install node-red-contrib-endiio
@@ -16,21 +21,21 @@ npm install node-red-contrib-endiio
 Communication
 -------------
 
-After the installation of the package the server is ready for use.
-Add the endiio connection node to the current flow to communicate with an endiio dongle.
-Commands can be issued by attaching one or more endiio command nodes to the left side of the node.
-The output of the dongle is available by attaching nodes to the right side of the connection node.
+After the installation of the *node-red-contrib-endiio* package the node-red server is ready for use.
+Add the **endiio-connection** node to the current flow to communicate with an endiio dongle / gateway.
+Commands can be issued by attaching one or more **endiio-command** nodes to the left side of the node.
+The output of the dongle is available by attaching nodes to the right side of the **endiio-connection** node.
 
 ![endiio connection node](https://raw.githubusercontent.com/endiioEngineeringGmbH/node-red-contrib-endiio/master/doc/connection_node.png "endiio connection node")
 
 Adding sensor units
 -------------------
 
-To add sensor units to the network the dongle need to be set into pairing mode.
-For this add a trigger node and an endiio command node.
-The boolean value `true` might be used as output of the trigger node since it is only used as set off for the pairing command.
-To monitor the current status of the pairing process a debug node should be appended to the right side of the endiio connection node.
-The debug output can be seen by switching to the debug tab on the right side of the user interface.
+To add sensor units to the network the dongle needs to be set into pairing mode.
+For this add a **trigger** node and an **endiio-command** node to the current flow.
+The boolean value `true` or any other value is sufficient as output of the trigger node since it is only used as a trigger for the pairing command.
+To monitor the status of the pairing process a debug node should be appended to the right side of the **endiio-connection** node.
+The debug output can be seen by switching to the debug tab (small bug icon) on the right side of the user interface.
 
 ![Setting the dongle into pairing mode](https://raw.githubusercontent.com/endiioEngineeringGmbH/node-red-contrib-endiio/master/doc/command_pairing_execute.png "Setting the dongle into pairing mode")
 
@@ -46,8 +51,9 @@ When clicking on the trigger button the command is confirmed by an `EN-SPAIRING=
 ```
 
 Now set the desired sensor unit into pairing mode to add it to the network.
+Please consult the user manual for setup instructions.
 The newly registered sensor unit should now be listed in the debug output with an assigned sensor unit id.
-When attaching additional sensor units to the network both devices, new sensor unit and dongle, have to be set into pairing mode.
+When attaching additional sensor units to the endiio sensor network both devices (the new sensor unit and the dongle / gateway) have to be set into pairing mode.
 
 ```json
 {
@@ -56,9 +62,9 @@ When attaching additional sensor units to the network both devices, new sensor u
 }
 ```
 
-Depending on the attached sensors the output will be splitted into multiple sensor records.
-Each record contains the source id of the sensor unit and the name of the attached sensor.
-The values and units object contained in the payload structure hold the measured data and can be processed by further nodes.
+Depending on the number of attached sensors the output will be splitted into multiple sensor data messages.
+Each message contains the source id of the sensor unit and the name of the attached sensor.
+The *values* and *units* objects contained in the payload structure hold the measured sensor data and can be processed by additional nodes.
 
 ```json
 {
@@ -75,3 +81,8 @@ The values and units object contained in the payload structure hold the measured
   }
 }
 ```
+
+Bug reports and contact
+-----------------------
+
+E-Mail: info@endiio.com
