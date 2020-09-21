@@ -16,7 +16,7 @@
     }
   },
   "dependencies": {
-    "serialport": "^8.0.5"
+    "serialport": "^9.0.1"
   },
   "repository": {
     "type": "git",
